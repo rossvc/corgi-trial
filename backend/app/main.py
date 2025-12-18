@@ -8,7 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api import routes
 from app.services.fetcher import MRMSFetcher
 from app.services.grib_processor import GRIBProcessor
-from app.config import POLL_INTERVAL
+from app.config import POLL_INTERVAL, ALLOWED_ORIGINS
 
 
 # Filter to suppress tile request logs
@@ -65,6 +65,7 @@ async def lifespan(app: FastAPI):
     global fetcher, processor
 
     logger.info("Starting Weather Radar Tile Server...")
+    logger.info(f"CORS allowed origins: {ALLOWED_ORIGINS}")
 
     # Initialize services
     fetcher = MRMSFetcher()
@@ -106,12 +107,7 @@ app = FastAPI(
 # CORS middleware for frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",  # Vite dev server
-        "http://localhost:3000",  # Alternative port
-        "http://127.0.0.1:5173",
-        "http://127.0.0.1:3000",
-    ],
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["GET"],
     allow_headers=["*"],

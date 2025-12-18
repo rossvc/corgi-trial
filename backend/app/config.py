@@ -21,3 +21,11 @@ LATEST_GEOTIFF = DATA_DIR / "latest_radar.tif"
 
 # Keep last N GRIB2 files for debugging
 MAX_GRIB_FILES = 5
+
+# CORS settings - comma-separated list of allowed origins
+DEFAULT_ORIGINS = "http://localhost:5173,http://localhost:3000,http://127.0.0.1:5173,http://127.0.0.1:3000"
+ALLOWED_ORIGINS = [
+    origin.strip()
+    for origin in os.getenv("ALLOWED_ORIGINS", DEFAULT_ORIGINS).split(",")
+    if origin.strip()
+]

@@ -1,6 +1,7 @@
 import { RadarMetadata } from '../types';
 
-const API_BASE = '';  // Using Vite proxy
+// Use VITE_API_URL in production, empty string for dev proxy
+const API_BASE = import.meta.env.VITE_API_URL || '';
 
 export async function fetchMetadata(): Promise<RadarMetadata> {
   const response = await fetch(`${API_BASE}/api/metadata`);
