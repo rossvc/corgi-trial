@@ -17,6 +17,7 @@ export function RadarMap() {
       <MapContainer
         center={center}
         zoom={zoom}
+        maxZoom={14}
         style={{ height: '100%', width: '100%' }}
         zoomControl={true}
       >
