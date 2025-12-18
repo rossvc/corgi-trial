@@ -10,12 +10,23 @@ from app.services.fetcher import MRMSFetcher
 from app.services.grib_processor import GRIBProcessor
 from app.config import POLL_INTERVAL
 
+
+# Filter to suppress tile request logs
+class TileRequestFilter(logging.Filter):
+    def filter(self, record: logging.LogRecord) -> bool:
+        # Filter out GET requests to /tiles/
+        return "/tiles/" not in record.getMessage()
+
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
 )
 logger = logging.getLogger(__name__)
+
+# Apply filter to uvicorn access logger to suppress tile requests
+logging.getLogger("uvicorn.access").addFilter(TileRequestFilter())
 
 # Global service instances
 fetcher: MRMSFetcher = None

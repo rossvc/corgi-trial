@@ -2,7 +2,6 @@ import { MapContainer, TileLayer } from 'react-leaflet';
 import { RadarTileLayer } from './RadarTileLayer';
 import { ColorLegend } from './ColorLegend';
 import { TimestampDisplay } from './TimestampDisplay';
-import { RefreshIndicator } from './RefreshIndicator';
 import { useMetadata } from '../hooks/useMetadata';
 import 'leaflet/dist/leaflet.css';
 
@@ -35,9 +34,10 @@ export function RadarMap() {
       <TimestampDisplay
         timestamp={metadata?.timestamp ?? null}
         status={metadata?.status ?? 'no_data'}
+        isLoading={isLoading}
+        lastUpdated={lastUpdated}
       />
       <ColorLegend />
-      <RefreshIndicator isLoading={isLoading} lastUpdated={lastUpdated} />
     </div>
   );
 }

@@ -8,6 +8,7 @@ import numpy as np
 import rasterio
 import xarray as xr
 from rasterio.crs import CRS
+from rasterio.enums import Resampling
 from rasterio.transform import from_bounds
 
 from app.config import DATA_DIR, LATEST_GEOTIFF
@@ -117,6 +118,12 @@ class GRIBProcessor:
                     compress="deflate",
                 ) as dst:
                     dst.write(data, 1)
+
+                # Add overviews for efficient tile serving
+                with rasterio.open(temp_path, "r+") as dst:
+                    overview_levels = [2, 4, 8, 16]
+                    dst.build_overviews(overview_levels, Resampling.average)
+                    dst.update_tags(ns='rio_overview', resampling='average')
 
                 # Atomic swap - os.replace is atomic on POSIX
                 os.replace(temp_path, LATEST_GEOTIFF)
