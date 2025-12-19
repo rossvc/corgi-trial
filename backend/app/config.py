@@ -1,6 +1,12 @@
 from pathlib import Path
 import os
 
+# GDAL caching configuration (must be set before any GDAL/rasterio imports)
+os.environ.setdefault("GDAL_CACHEMAX", "200")  # 200MB block cache
+os.environ.setdefault("VSI_CACHE", "TRUE")  # Enable VSI caching
+os.environ.setdefault("VSI_CACHE_SIZE", "5000000")  # 5MB per file handle
+os.environ.setdefault("GDAL_DISABLE_READDIR_ON_OPEN", "EMPTY_DIR")  # Skip directory listing
+
 from dotenv import load_dotenv
 
 # Load .env file from backend directory

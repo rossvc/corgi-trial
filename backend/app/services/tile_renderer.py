@@ -1,13 +1,18 @@
 import io
 import logging
+import os
 from typing import Optional
 
 import numpy as np
+from cachetools import LRUCache
 from PIL import Image
 from rio_tiler.io import Reader
 from rio_tiler.errors import TileOutsideBounds
 
 from app.config import LATEST_GEOTIFF
+
+# Tile cache size (number of tiles to keep in memory)
+TILE_CACHE_SIZE = int(os.getenv("TILE_CACHE_SIZE", 1000))
 
 logger = logging.getLogger(__name__)
 
@@ -83,6 +88,15 @@ class TileRenderer:
 
     def __init__(self):
         self._empty_tile: Optional[bytes] = None
+        self._tile_cache: LRUCache = LRUCache(maxsize=TILE_CACHE_SIZE)
+        self._last_mtime: float = 0
+
+    def _get_file_mtime(self) -> float:
+        """Get modification time of the GeoTIFF file."""
+        try:
+            return LATEST_GEOTIFF.stat().st_mtime
+        except FileNotFoundError:
+            return 0
 
     def get_tile(self, z: int, x: int, y: int) -> bytes:
         """
@@ -90,9 +104,21 @@ class TileRenderer:
 
         Uses Web Mercator (EPSG:3857) tile scheme.
         Returns transparent tile if data unavailable or out of bounds.
+        Tiles are cached in memory and invalidated when the source file changes.
         """
         if not LATEST_GEOTIFF.exists():
             return self._get_empty_tile()
+
+        # Check if source file changed and invalidate cache
+        mtime = self._get_file_mtime()
+        if mtime != self._last_mtime:
+            self._tile_cache.clear()
+            self._last_mtime = mtime
+
+        # Check cache
+        cache_key = (z, x, y)
+        if cache_key in self._tile_cache:
+            return self._tile_cache[cache_key]
 
         try:
             with Reader(str(LATEST_GEOTIFF)) as src:
@@ -112,6 +138,8 @@ class TileRenderer:
                     img_format="PNG",
                 )
 
+                # Cache the rendered tile
+                self._tile_cache[cache_key] = content
                 return content
 
         except TileOutsideBounds:
